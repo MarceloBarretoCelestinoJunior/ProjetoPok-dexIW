@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Pokedex</title>
+
+    
+</head>
+<body>
+    <div class="bolinha"></div>
+    <div class="tudo">
+
+    <h3 class="c"> Busca Pokémon  </h3> 
+    
+    <form id="BuscaPokemon">
+        <input type="text" id="pokemon" placeholder="Ex: Eevee">
+        <input type="submit" value="Buscar">
+    </form>
+    
+    <div  id="Resultados"></div>
+    <div  id="Historico"></div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+        const formPokemon = document.getElementById('BuscaPokemon');
+        const resultContainer = document.getElementById('Resultados');
+        const historicoContainer = document.getElementById('Historico');
+
+        function limparResultados(){
+            resultContainer.innerHTML = '';
+        }
+
+        formPokemon.addEventListener('submit', function (event){
+            event.preventDefault();
+            limparResultados();
+            const Pokemon = formPokemon.pokemon.value.toLowerCase();
+            BuscaPokemon(Pokemon);
+        });
+
+        function salvarPokemon(nome, id, tipo, altura, peso, geracao){
+            let historico = JSON.parse(localStorage.getItem('Historico')) || [];
+            historico.unshift({ nome: nome, id: id, tipo: tipo, altura: altura, peso: peso, geracao: geracao });
+            localStorage.setItem('Historico', JSON.stringify(historico));
+            exibirHistorico();
+        }
+
+        function exibirHistorico(){
+            let historico = JSON.parse(localStorage.getItem('Historico')) || [];
+            historicoContainer.innerHTML = ''
+            historico.forEach(item =>{
+                const div = document.createElement('div')
+                div.innerHTML = `Nome: ${item.nome}<br> ID: ${item.id}<br> Tipo: ${item.tipo}<br> Altura: ${item.altura}<br> Peso: ${item.peso}<br> Geração: ${item.geracao}<br><br>`
+                div.dataset.nome = item.nome;
+                div.dataset.id = item.id;
+                div.dataset.tipo = item.tipo;
+                div.dataset.altura = item.altura;
+                div.dataset.peso = item.peso;
+                div.dataset.geracao = item.geracao;
+                div.addEventListener('click', function(){
+                    limparResultados();
+                    BuscaPokemon(item.nome);
+                })
+            })
+
+        }
+
+        async function BuscaPokemon(Pokemon) {
+            const API = `https://pokeapi.co/api/v2/pokemon/${Pokemon}`;
+            try{
+                const response = await fetch (API);
+                const data = await response.json(); 
+                
+                if (data.legth === 0){
+                    resultContainer = 'Pokémon não encontrado! Verifique a ortografia'
+                } else {
+                    console.log(data);
+                    
+                    resultContainer.innerHTML = `
+                    <h2>${data.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}</h2>
+                    <img src="${data.sprites.front_default}" alt="${pokemon.name}">
+                    <p><strong>ID:</strong> ${data.id}</p>
+                    <p><strong>Type:</strong> ${data.types.map(type => type.type.name).join(', ')}</p>
+                    <p><strong>Height:</strong> ${data.height / 10} m</p>
+                    <p><strong>Weight:</strong> ${data.weight / 10} kg</p>
+                    <p><strong>Generation:</strong> ${data.past_types.generation.name}</p>
+                    `;  
+                }
+                salvarPokemon(data.name, data.id, data,types.map, data.height, data.weight, data.generation.name);
+            } catch(error){
+                resultContainer.innerHTML = 'Erro ao buscar o Pokémon';
+            }
+        }
+    }); 
+    </script>
+</body>
+</html>
